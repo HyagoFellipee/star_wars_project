@@ -4,6 +4,21 @@ import { api } from '../services/api';
 import { Loading, ErrorMessage, SearchBar, Card } from '../components';
 import type { SearchParams } from '../types';
 
+// TMDB poster paths for Star Wars films (SWAPI id -> TMDB poster)
+const FILM_POSTERS: Record<number, string> = {
+  1: '/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg', // A New Hope
+  2: '/nNAeTmF4CtdSgMDplXTDPOpYzsX.jpg', // Empire Strikes Back
+  3: '/llaJ35p5e23ygDbqd0H3otJLWsA.jpg', // Return of the Jedi
+  4: '/6wkfovpn7Eq8dYNKaG5PY3q2oq6.jpg', // Phantom Menace
+  5: '/9m1nJ2MfTG5QEmjOCg0b4YCo4W8.jpg', // Attack of the Clones
+  6: '/xfSAoBEm9MNBjmlNcDYLvLSMlnq.jpg', // Revenge of the Sith
+};
+
+const getFilmPoster = (filmId: number): string | undefined => {
+  const posterPath = FILM_POSTERS[filmId];
+  return posterPath ? `https://image.tmdb.org/t/p/w500${posterPath}` : undefined;
+};
+
 export default function Films() {
   const [params, setParams] = useState<SearchParams>({
     page: 1,
@@ -60,6 +75,7 @@ export default function Films() {
               title={film.title}
               subtitle={film.release_date}
               badge={`Episode ${film.episode_id}`}
+              image={getFilmPoster(film.id)}
             />
           ))}
         </div>

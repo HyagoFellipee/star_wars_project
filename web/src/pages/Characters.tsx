@@ -63,7 +63,6 @@ export default function Characters() {
                 key={character.id}
                 to={`/characters/${character.id}`}
                 title={character.name}
-                subtitle={character.gender !== 'n/a' ? character.gender : undefined}
                 badge={character.birth_year}
               />
             ))}
