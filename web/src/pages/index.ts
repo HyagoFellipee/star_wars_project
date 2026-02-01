@@ -1,0 +1,10 @@
+export { default as Home } from './Home';
+export { default as Characters } from './Characters';
+export { default as CharacterDetail } from './CharacterDetail';
+export { default as Planets } from './Planets';
+export { default as PlanetDetail } from './PlanetDetail';
+export { default as Starships } from './Starships';
+export { default as StarshipDetail } from './StarshipDetail';
+export { default as Films } from './Films';
+export { default as FilmDetail } from './FilmDetail';
+export { default as NotFound } from './NotFound';
