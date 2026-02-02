@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Loading, ErrorMessage } from '../components';
+import { Loading, ErrorMessage, SectionLoader, StatLoader } from '../components';
 
 // TMDB poster paths for Star Wars films
 const FILM_POSTERS: Record<number, string> = {
@@ -32,19 +32,19 @@ export default function FilmDetail() {
     enabled: !isNaN(filmId),
   });
 
-  const { data: characters } = useQuery({
+  const { data: characters, isLoading: charactersLoading } = useQuery({
     queryKey: ['film-characters', filmId],
     queryFn: () => api.getFilmCharacters(filmId),
     enabled: !isNaN(filmId),
   });
 
-  const { data: planets } = useQuery({
+  const { data: planets, isLoading: planetsLoading } = useQuery({
     queryKey: ['film-planets', filmId],
     queryFn: () => api.getFilmPlanets(filmId),
     enabled: !isNaN(filmId),
   });
 
-  const { data: starships } = useQuery({
+  const { data: starships, isLoading: starshipsLoading } = useQuery({
     queryKey: ['film-starships', filmId],
     queryFn: () => api.getFilmStarships(filmId),
     enabled: !isNaN(filmId),
@@ -128,26 +128,34 @@ export default function FilmDetail() {
           <dl className="space-y-3">
             <div className="flex justify-between">
               <dt className="text-gray-400">Characters</dt>
-              <dd className="text-sw-yellow">{characters?.length ?? 0}</dd>
+              <dd className="text-sw-yellow">
+                {charactersLoading ? <StatLoader /> : (characters?.length ?? 0)}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-gray-400">Planets</dt>
-              <dd className="text-sw-yellow">{planets?.length ?? 0}</dd>
+              <dd className="text-sw-yellow">
+                {planetsLoading ? <StatLoader /> : (planets?.length ?? 0)}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-gray-400">Starships</dt>
-              <dd className="text-sw-yellow">{starships?.length ?? 0}</dd>
+              <dd className="text-sw-yellow">
+                {starshipsLoading ? <StatLoader /> : (starships?.length ?? 0)}
+              </dd>
             </div>
           </dl>
         </div>
       </div>
 
       {/* Characters */}
-      {characters && characters.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Characters ({characters.length})
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Characters {!charactersLoading && characters && `(${characters.length})`}
+        </h2>
+        {charactersLoading ? (
+          <SectionLoader itemCount={8} />
+        ) : characters && characters.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {characters.map((character) => (
               <Link
@@ -161,15 +169,19 @@ export default function FilmDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No characters found</p>
+        )}
+      </div>
 
       {/* Planets */}
-      {planets && planets.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Planets ({planets.length})
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Planets {!planetsLoading && planets && `(${planets.length})`}
+        </h2>
+        {planetsLoading ? (
+          <SectionLoader itemCount={4} />
+        ) : planets && planets.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {planets.map((planet) => (
               <Link
@@ -182,15 +194,19 @@ export default function FilmDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No planets found</p>
+        )}
+      </div>
 
       {/* Starships */}
-      {starships && starships.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Starships ({starships.length})
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Starships {!starshipsLoading && starships && `(${starships.length})`}
+        </h2>
+        {starshipsLoading ? (
+          <SectionLoader itemCount={4} />
+        ) : starships && starships.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {starships.map((starship) => (
               <Link
@@ -207,8 +223,10 @@ export default function FilmDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No starships found</p>
+        )}
+      </div>
     </div>
   );
 }

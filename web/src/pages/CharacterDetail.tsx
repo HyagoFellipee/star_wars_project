@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Loading, ErrorMessage } from '../components';
+import { Loading, ErrorMessage, SectionLoader } from '../components';
 import { useCharacterImages } from '../hooks';
 
 export default function CharacterDetail() {
@@ -19,7 +19,7 @@ export default function CharacterDetail() {
     enabled: !isNaN(characterId),
   });
 
-  const { data: films } = useQuery({
+  const { data: films, isLoading: filmsLoading } = useQuery({
     queryKey: ['character-films', characterId],
     queryFn: () => api.getCharacterFilms(characterId),
     enabled: !isNaN(characterId),
@@ -122,11 +122,13 @@ export default function CharacterDetail() {
       </div>
 
       {/* Films */}
-      {films && films.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Appears in {films.length} {films.length === 1 ? 'film' : 'films'}
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          {filmsLoading ? 'Films' : `Appears in ${films?.length ?? 0} ${films?.length === 1 ? 'film' : 'films'}`}
+        </h2>
+        {filmsLoading ? (
+          <SectionLoader itemCount={3} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        ) : films && films.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {films.map((film) => (
               <Link
@@ -141,8 +143,10 @@ export default function CharacterDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No films found</p>
+        )}
+      </div>
     </div>
   );
 }

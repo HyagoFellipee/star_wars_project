@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Loading, ErrorMessage } from '../components';
+import { Loading, ErrorMessage, SectionLoader } from '../components';
 
 export default function StarshipDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,13 +17,13 @@ export default function StarshipDetail() {
     enabled: !isNaN(starshipId),
   });
 
-  const { data: pilots } = useQuery({
+  const { data: pilots, isLoading: pilotsLoading } = useQuery({
     queryKey: ['starship-pilots', starshipId],
     queryFn: () => api.getStarshipPilots(starshipId),
     enabled: !isNaN(starshipId),
   });
 
-  const { data: films } = useQuery({
+  const { data: films, isLoading: filmsLoading } = useQuery({
     queryKey: ['starship-films', starshipId],
     queryFn: () => api.getStarshipFilms(starshipId),
     enabled: !isNaN(starshipId),
@@ -133,11 +133,13 @@ export default function StarshipDetail() {
       </div>
 
       {/* Pilots */}
-      {pilots && pilots.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Pilots ({pilots.length})
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Pilots {!pilotsLoading && pilots && `(${pilots.length})`}
+        </h2>
+        {pilotsLoading ? (
+          <SectionLoader itemCount={3} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        ) : pilots && pilots.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {pilots.map((pilot) => (
               <Link
@@ -149,15 +151,19 @@ export default function StarshipDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No pilots found</p>
+        )}
+      </div>
 
       {/* Films */}
-      {films && films.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Appears in {films.length} {films.length === 1 ? 'film' : 'films'}
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          {filmsLoading ? 'Films' : `Appears in ${films?.length ?? 0} ${films?.length === 1 ? 'film' : 'films'}`}
+        </h2>
+        {filmsLoading ? (
+          <SectionLoader itemCount={3} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        ) : films && films.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {films.map((film) => (
               <Link
@@ -170,8 +176,10 @@ export default function StarshipDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No films found</p>
+        )}
+      </div>
     </div>
   );
 }

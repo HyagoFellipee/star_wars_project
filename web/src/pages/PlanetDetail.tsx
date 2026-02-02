@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Loading, ErrorMessage } from '../components';
+import { Loading, ErrorMessage, SectionLoader } from '../components';
 
 export default function PlanetDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,13 +17,13 @@ export default function PlanetDetail() {
     enabled: !isNaN(planetId),
   });
 
-  const { data: residents } = useQuery({
+  const { data: residents, isLoading: residentsLoading } = useQuery({
     queryKey: ['planet-residents', planetId],
     queryFn: () => api.getPlanetResidents(planetId),
     enabled: !isNaN(planetId),
   });
 
-  const { data: films } = useQuery({
+  const { data: films, isLoading: filmsLoading } = useQuery({
     queryKey: ['planet-films', planetId],
     queryFn: () => api.getPlanetFilms(planetId),
     enabled: !isNaN(planetId),
@@ -122,11 +122,13 @@ export default function PlanetDetail() {
       </div>
 
       {/* Residents */}
-      {residents && residents.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Notable Residents ({residents.length})
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Notable Residents {!residentsLoading && residents && `(${residents.length})`}
+        </h2>
+        {residentsLoading ? (
+          <SectionLoader itemCount={3} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        ) : residents && residents.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {residents.map((resident) => (
               <Link
@@ -139,15 +141,19 @@ export default function PlanetDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No residents found</p>
+        )}
+      </div>
 
       {/* Films */}
-      {films && films.length > 0 && (
-        <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Featured in {films.length} {films.length === 1 ? 'film' : 'films'}
-          </h2>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">
+          {filmsLoading ? 'Films' : `Featured in ${films?.length ?? 0} ${films?.length === 1 ? 'film' : 'films'}`}
+        </h2>
+        {filmsLoading ? (
+          <SectionLoader itemCount={3} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        ) : films && films.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {films.map((film) => (
               <Link
@@ -160,8 +166,10 @@ export default function PlanetDetail() {
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-sm">No films found</p>
+        )}
+      </div>
     </div>
   );
 }
