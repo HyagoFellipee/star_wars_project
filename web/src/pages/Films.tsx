@@ -77,6 +77,7 @@ export default function Films() {
               badge={`Episode ${film.episode_id}`}
               image={getFilmPoster(film.id)}
               aspectRatio="2/3"
+              category="film"
             />
           ))}
         </div>

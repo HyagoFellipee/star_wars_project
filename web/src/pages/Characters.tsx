@@ -68,6 +68,7 @@ export default function Characters() {
                 title={character.name}
                 badge={character.birth_year}
                 image={getCharacterImage(character.id)}
+                category="character"
               />
             ))}
           </div>

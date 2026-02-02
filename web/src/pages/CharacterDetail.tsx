@@ -51,11 +51,11 @@ export default function CharacterDetail() {
       {/* Character header */}
       <div className="bg-sw-dark border border-sw-gray rounded-xl p-6 flex gap-6">
         {getCharacterImage(characterId) && (
-          <div className="w-32 h-40 flex-shrink-0 overflow-hidden rounded-lg bg-sw-darker">
+          <div className="w-32 h-40 flex-shrink-0 overflow-hidden rounded-lg bg-sw-darker flex items-center justify-center">
             <img
               src={getCharacterImage(characterId)}
               alt={character.name}
-              className="w-full h-full object-cover"
+              className="max-w-full max-h-full object-contain"
             />
           </div>
         )}

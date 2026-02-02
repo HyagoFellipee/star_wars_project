@@ -64,6 +64,7 @@ export default function Planets() {
                 to={`/planets/${planet.id}`}
                 title={planet.name}
                 subtitle={planet.climate}
+                category="planet"
               >
                 <span className="text-gray-500">{planet.terrain}</span>
               </Card>

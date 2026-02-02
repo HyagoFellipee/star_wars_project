@@ -1,5 +1,8 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import PlaceholderImage from './PlaceholderImage';
+
+type Category = 'character' | 'film' | 'starship' | 'planet';
 
 interface CardProps {
   to: string;
@@ -9,10 +12,42 @@ interface CardProps {
   badge?: string;
   image?: string;
   aspectRatio?: string;
+  category?: Category;
 }
 
-export default function Card({ to, title, subtitle, children, badge, image, aspectRatio }: CardProps) {
-  const [imgError, setImgError] = useState(false);
+export default function Card({ to, title, subtitle, children, badge, image, aspectRatio, category }: CardProps) {
+  const [imgStatus, setImgStatus] = useState<'loading' | 'valid' | 'error'>(image ? 'loading' : 'error');
+
+  // Validate image URL with fetch to check HTTP status (404 = error)
+  useEffect(() => {
+    if (!image) {
+      setImgStatus('error');
+      return;
+    }
+
+    setImgStatus('loading');
+
+    // Try to fetch with cors to get the real HTTP status
+    fetch(image, { method: 'HEAD' })
+      .then((response) => {
+        if (response.ok) {
+          setImgStatus('valid');
+        } else {
+          // 404 or other error status
+          setImgStatus('error');
+        }
+      })
+      .catch(() => {
+        // CORS error - fallback to loading image directly
+        const img = new Image();
+        img.onload = () => setImgStatus('valid');
+        img.onerror = () => setImgStatus('error');
+        img.src = image;
+      });
+  }, [image]);
+
+  const showImage = imgStatus === 'valid';
+  const showPlaceholder = category && imgStatus !== 'valid';
 
   return (
     <Link
@@ -20,7 +55,7 @@ export default function Card({ to, title, subtitle, children, badge, image, aspe
       className="block bg-sw-dark border border-sw-gray rounded-lg overflow-hidden
                  card-hover hover:border-sw-yellow/50"
     >
-      {image && !imgError && (
+      {showImage && (
         <div
           className="overflow-hidden bg-sw-darker flex items-center justify-center"
           style={aspectRatio ? { aspectRatio } : { height: '12rem' }}
@@ -29,9 +64,11 @@ export default function Card({ to, title, subtitle, children, badge, image, aspe
             src={image}
             alt={title}
             className={aspectRatio ? "w-full h-full object-cover" : "max-w-full max-h-full object-contain"}
-            onError={() => setImgError(true)}
           />
         </div>
+      )}
+      {showPlaceholder && (
+        <PlaceholderImage category={category} aspectRatio={aspectRatio} />
       )}
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">

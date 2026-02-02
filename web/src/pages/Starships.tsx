@@ -65,6 +65,7 @@ export default function Starships() {
                 title={starship.name}
                 subtitle={starship.model}
                 badge={starship.starship_class}
+                category="starship"
               />
             ))}
           </div>
