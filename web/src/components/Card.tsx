@@ -8,9 +8,10 @@ interface CardProps {
   children?: ReactNode;
   badge?: string;
   image?: string;
+  aspectRatio?: string;
 }
 
-export default function Card({ to, title, subtitle, children, badge, image }: CardProps) {
+export default function Card({ to, title, subtitle, children, badge, image, aspectRatio }: CardProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -20,11 +21,14 @@ export default function Card({ to, title, subtitle, children, badge, image }: Ca
                  card-hover hover:border-sw-yellow/50"
     >
       {image && !imgError && (
-        <div className="h-40 overflow-hidden bg-sw-gray">
+        <div
+          className="overflow-hidden bg-sw-darker flex items-center justify-center"
+          style={aspectRatio ? { aspectRatio } : { height: '12rem' }}
+        >
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-cover"
+            className={aspectRatio ? "w-full h-full object-cover" : "max-w-full max-h-full object-contain"}
             onError={() => setImgError(true)}
           />
         </div>

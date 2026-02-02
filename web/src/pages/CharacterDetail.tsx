@@ -2,10 +2,12 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { Loading, ErrorMessage } from '../components';
+import { useCharacterImages } from '../hooks';
 
 export default function CharacterDetail() {
   const { id } = useParams<{ id: string }>();
   const characterId = Number(id);
+  const getCharacterImage = useCharacterImages();
 
   const {
     data: character,
@@ -47,9 +49,20 @@ export default function CharacterDetail() {
       </Link>
 
       {/* Character header */}
-      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-        <h1 className="text-3xl font-bold text-white mb-2">{character.name}</h1>
-        <p className="text-sw-yellow">{character.birth_year}</p>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6 flex gap-6">
+        {getCharacterImage(characterId) && (
+          <div className="w-32 h-40 flex-shrink-0 overflow-hidden rounded-lg bg-sw-darker">
+            <img
+              src={getCharacterImage(characterId)}
+              alt={character.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">{character.name}</h1>
+          <p className="text-sw-yellow">{character.birth_year}</p>
+        </div>
       </div>
 
       {/* Character details grid */}

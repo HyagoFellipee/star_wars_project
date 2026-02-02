@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { Loading, ErrorMessage, SearchBar, Pagination, Card } from '../components';
+import { useCharacterImages } from '../hooks';
 import type { SearchParams } from '../types';
 
 export default function Characters() {
@@ -11,6 +12,8 @@ export default function Characters() {
     sort_by: 'name',
     order: 'asc',
   });
+
+  const getCharacterImage = useCharacterImages();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['characters', params],
@@ -64,6 +67,7 @@ export default function Characters() {
                 to={`/characters/${character.id}`}
                 title={character.name}
                 badge={character.birth_year}
+                image={getCharacterImage(character.id)}
               />
             ))}
           </div>

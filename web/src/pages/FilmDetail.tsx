@@ -3,6 +3,21 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { Loading, ErrorMessage } from '../components';
 
+// TMDB poster paths for Star Wars films
+const FILM_POSTERS: Record<number, string> = {
+  1: '/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg', // A New Hope
+  2: '/nNAeTmF4CtdSgMDplXTDPOpYzsX.jpg', // Empire Strikes Back
+  3: '/jQYlydvHm3kUix1f8prMucrplhm.jpg', // Return of the Jedi
+  4: '/6wkfovpn7Eq8dYNKaG5PY3q2oq6.jpg', // Phantom Menace
+  5: '/oZNPzxqM2s5DyVWab09NTQScDQt.jpg', // Attack of the Clones
+  6: '/xfSAoBEm9MNBjmlNcDYLvLSMlnq.jpg', // Revenge of the Sith
+};
+
+const getFilmPoster = (filmId: number): string | undefined => {
+  const posterPath = FILM_POSTERS[filmId];
+  return posterPath ? `https://image.tmdb.org/t/p/w500${posterPath}` : undefined;
+};
+
 export default function FilmDetail() {
   const { id } = useParams<{ id: string }>();
   const filmId = Number(id);
@@ -58,13 +73,24 @@ export default function FilmDetail() {
       </Link>
 
       {/* Film header */}
-      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">{film.title}</h1>
-            <p className="text-sw-yellow">Episode {film.episode_id}</p>
+      <div className="bg-sw-dark border border-sw-gray rounded-xl p-6 flex gap-6">
+        {getFilmPoster(filmId) && (
+          <div className="w-32 flex-shrink-0 overflow-hidden rounded-lg bg-sw-darker">
+            <img
+              src={getFilmPoster(filmId)}
+              alt={film.title}
+              className="w-full object-contain"
+            />
           </div>
-          <span className="text-gray-400">{film.release_date}</span>
+        )}
+        <div className="flex-1">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">{film.title}</h1>
+              <p className="text-sw-yellow">Episode {film.episode_id}</p>
+            </div>
+            <span className="text-gray-400">{film.release_date}</span>
+          </div>
         </div>
       </div>
 
