@@ -33,6 +33,34 @@ class SortOrder(str, Enum):
     desc = "desc"
 
 
+def _apply_filters(
+    characters: list[CharacterSummary],
+    filters: dict[str, str | None],
+    exact_match_fields: set[str] | None = None,
+) -> list[CharacterSummary]:
+    """Apply case-insensitive filters to character list.
+
+    Args:
+        exact_match_fields: Fields that require exact match (e.g., 'gender')
+                           instead of substring match.
+    """
+    exact_fields = exact_match_fields or set()
+    result = characters
+    for field, value in filters.items():
+        if value is not None:
+            if field in exact_fields:
+                result = [
+                    char for char in result
+                    if getattr(char, field, "").lower() == value.lower()
+                ]
+            else:
+                result = [
+                    char for char in result
+                    if value.lower() in getattr(char, field, "").lower()
+                ]
+    return result
+
+
 def _sort_characters(
     characters: list[CharacterSummary],
     sort_by: CharacterSortField,
@@ -55,6 +83,9 @@ def _sort_characters(
     return sorted(characters, key=get_sort_key, reverse=reverse)
 
 
+PAGE_SIZE = 10
+
+
 @router.get("/", response_model=PaginatedResponse[CharacterSummary])
 async def list_characters(
     client: Annotated[SwapiClient, Depends(get_swapi_client)],
@@ -64,34 +95,62 @@ async def list_characters(
         CharacterSortField.name, description="Field to sort by"
     ),
     order: SortOrder = Query(SortOrder.asc, description="Sort order"),
+    gender: str | None = Query(None, description="Filter by gender (male, female, n/a)"),
+    eye_color: str | None = Query(None, description="Filter by eye color"),
+    hair_color: str | None = Query(None, description="Filter by hair color"),
+    skin_color: str | None = Query(None, description="Filter by skin color"),
+    film_id: int | None = Query(None, description="Filter by film ID (characters in film)"),
 ):
     """
-    List all characters with pagination, search, and sorting.
+    List all characters with pagination, search, sorting, and filters.
 
-    The SWAPI returns 10 items per page. We pass through their pagination
-    and add sorting on our end (since SWAPI doesn't support it).
+    Fetches all data from SWAPI, applies filters/sorting, then paginates.
+    Results are cached to improve performance on subsequent requests.
     """
-    data = await client.fetch_people(page=page, search=search)
+    # Fetch ALL characters (cached after first request)
+    all_data = await client.fetch_all_people(search=search)
+
+    # If filtering by film, get the film's character URLs
+    film_char_urls: set[str] | None = None
+    if film_id:
+        film_data = await client.fetch_film(film_id)
+        film_char_urls = set(film_data.get("characters", []))
 
     # Parse results into summaries
     characters = []
-    for item in data.get("results", []):
+    for item in all_data:
+        # Filter by film if specified
+        if film_char_urls is not None and item["url"] not in film_char_urls:
+            continue
         char_id = client._extract_id_from_url(item["url"])
         characters.append(client._parse_character_summary(item, char_id))
 
-    # Sort results
-    sorted_chars = _sort_characters(characters, sort_by, order)
+    # Apply filters
+    filters = {
+        "gender": gender,
+        "eye_color": eye_color,
+        "hair_color": hair_color,
+        "skin_color": skin_color,
+    }
+    filtered_chars = _apply_filters(characters, filters, exact_match_fields={"gender"})
 
-    total_count = data.get("count", 0)
-    total_pages = math.ceil(total_count / 10) if total_count > 0 else 1
+    # Sort results
+    sorted_chars = _sort_characters(filtered_chars, sort_by, order)
+
+    # Paginate
+    total_count = len(sorted_chars)
+    total_pages = math.ceil(total_count / PAGE_SIZE) if total_count > 0 else 1
+    start_idx = (page - 1) * PAGE_SIZE
+    end_idx = start_idx + PAGE_SIZE
+    page_results = sorted_chars[start_idx:end_idx]
 
     return PaginatedResponse(
         count=total_count,
         page=page,
         total_pages=total_pages,
-        next_page=page + 1 if data.get("next") else None,
-        previous_page=page - 1 if data.get("previous") else None,
-        results=sorted_chars,
+        next_page=page + 1 if page < total_pages else None,
+        previous_page=page - 1 if page > 1 else None,
+        results=page_results,
     )
 
 

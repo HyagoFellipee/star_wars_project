@@ -59,6 +59,25 @@ class SwapiApi {
     if (params.sort_by) query.set('sort_by', params.sort_by);
     if (params.order) query.set('order', params.order);
 
+    // Character filters
+    if (params.gender) query.set('gender', params.gender);
+    if (params.eye_color) query.set('eye_color', params.eye_color);
+    if (params.hair_color) query.set('hair_color', params.hair_color);
+    if (params.skin_color) query.set('skin_color', params.skin_color);
+    if (params.film_id) query.set('film_id', params.film_id.toString());
+
+    // Planet filters
+    if (params.climate) query.set('climate', params.climate);
+    if (params.terrain) query.set('terrain', params.terrain);
+
+    // Starship filters
+    if (params.starship_class) query.set('starship_class', params.starship_class);
+    if (params.manufacturer) query.set('manufacturer', params.manufacturer);
+
+    // Film filters
+    if (params.director) query.set('director', params.director);
+    if (params.producer) query.set('producer', params.producer);
+
     const queryString = query.toString();
     return queryString ? `?${queryString}` : '';
   }

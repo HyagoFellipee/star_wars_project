@@ -33,6 +33,21 @@ class SortOrder(str, Enum):
     desc = "desc"
 
 
+def _apply_filters(
+    starships: list[StarshipSummary],
+    filters: dict[str, str | None],
+) -> list[StarshipSummary]:
+    """Apply case-insensitive filters to starship list."""
+    result = starships
+    for field, value in filters.items():
+        if value is not None:
+            result = [
+                ship for ship in result
+                if value.lower() in getattr(ship, field, "").lower()
+            ]
+    return result
+
+
 def _sort_starships(
     starships: list[StarshipSummary],
     sort_by: StarshipSortField,
@@ -48,6 +63,9 @@ def _sort_starships(
     return sorted(starships, key=get_sort_key, reverse=reverse)
 
 
+PAGE_SIZE = 10
+
+
 @router.get("/", response_model=PaginatedResponse[StarshipSummary])
 async def list_starships(
     client: Annotated[SwapiClient, Depends(get_swapi_client)],
@@ -57,27 +75,53 @@ async def list_starships(
         StarshipSortField.name, description="Field to sort by"
     ),
     order: SortOrder = Query(SortOrder.asc, description="Sort order"),
+    starship_class: str | None = Query(None, description="Filter by starship class"),
+    manufacturer: str | None = Query(None, description="Filter by manufacturer"),
+    film_id: int | None = Query(None, description="Filter by film ID (starships in film)"),
 ):
-    """List all starships with pagination, search, and sorting."""
-    data = await client.fetch_starships(page=page, search=search)
+    """
+    List all starships with pagination, search, sorting, and filters.
+
+    Fetches all data from SWAPI, applies filters/sorting, then paginates.
+    """
+    # Fetch ALL starships (cached after first request)
+    all_data = await client.fetch_all_starships(search=search)
+
+    # If filtering by film, get the film's starship URLs
+    film_ship_urls: set[str] | None = None
+    if film_id:
+        film_data = await client.fetch_film(film_id)
+        film_ship_urls = set(film_data.get("starships", []))
 
     starships = []
-    for item in data.get("results", []):
+    for item in all_data:
+        # Filter by film if specified
+        if film_ship_urls is not None and item["url"] not in film_ship_urls:
+            continue
         ship_id = client._extract_id_from_url(item["url"])
         starships.append(client._parse_starship_summary(item, ship_id))
 
-    sorted_ships = _sort_starships(starships, sort_by, order)
+    # Apply filters
+    filters = {"starship_class": starship_class, "manufacturer": manufacturer}
+    filtered_ships = _apply_filters(starships, filters)
 
-    total_count = data.get("count", 0)
-    total_pages = math.ceil(total_count / 10) if total_count > 0 else 1
+    # Sort results
+    sorted_ships = _sort_starships(filtered_ships, sort_by, order)
+
+    # Paginate
+    total_count = len(sorted_ships)
+    total_pages = math.ceil(total_count / PAGE_SIZE) if total_count > 0 else 1
+    start_idx = (page - 1) * PAGE_SIZE
+    end_idx = start_idx + PAGE_SIZE
+    page_results = sorted_ships[start_idx:end_idx]
 
     return PaginatedResponse(
         count=total_count,
         page=page,
         total_pages=total_pages,
-        next_page=page + 1 if data.get("next") else None,
-        previous_page=page - 1 if data.get("previous") else None,
-        results=sorted_ships,
+        next_page=page + 1 if page < total_pages else None,
+        previous_page=page - 1 if page > 1 else None,
+        results=page_results,
     )
 
 

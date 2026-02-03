@@ -34,6 +34,21 @@ class SortOrder(str, Enum):
     desc = "desc"
 
 
+def _apply_filters(
+    films: list[FilmSummary],
+    filters: dict[str, str | None],
+) -> list[FilmSummary]:
+    """Apply case-insensitive filters to film list."""
+    result = films
+    for field, value in filters.items():
+        if value is not None:
+            result = [
+                film for film in result
+                if value.lower() in getattr(film, field, "").lower()
+            ]
+    return result
+
+
 def _sort_films(
     films: list[FilmSummary],
     sort_by: FilmSortField,
@@ -51,6 +66,9 @@ def _sort_films(
     return sorted(films, key=get_sort_key, reverse=reverse)
 
 
+PAGE_SIZE = 10
+
+
 @router.get("/", response_model=PaginatedResponse[FilmSummary])
 async def list_films(
     client: Annotated[SwapiClient, Depends(get_swapi_client)],
@@ -60,33 +78,44 @@ async def list_films(
         FilmSortField.episode_id, description="Field to sort by"
     ),
     order: SortOrder = Query(SortOrder.asc, description="Sort order"),
+    director: str | None = Query(None, description="Filter by director"),
+    producer: str | None = Query(None, description="Filter by producer"),
 ):
     """
-    List all films with pagination, search, and sorting.
+    List all films with pagination, search, sorting, and filters.
 
-    Note: There are only 6 films in SWAPI, so pagination is mostly
-    for API consistency. Default sort is by episode_id to show
-    films in chronological order.
+    Note: There are only 6 films in SWAPI. Default sort is by episode_id
+    to show films in chronological order.
     """
-    data = await client.fetch_films(page=page, search=search)
+    # Fetch ALL films (cached after first request)
+    all_data = await client.fetch_all_films(search=search)
 
     films = []
-    for item in data.get("results", []):
+    for item in all_data:
         film_id = client._extract_id_from_url(item["url"])
         films.append(client._parse_film_summary(item, film_id))
 
-    sorted_films = _sort_films(films, sort_by, order)
+    # Apply filters
+    filters = {"director": director, "producer": producer}
+    filtered_films = _apply_filters(films, filters)
 
-    total_count = data.get("count", 0)
-    total_pages = math.ceil(total_count / 10) if total_count > 0 else 1
+    # Sort results
+    sorted_films = _sort_films(filtered_films, sort_by, order)
+
+    # Paginate
+    total_count = len(sorted_films)
+    total_pages = math.ceil(total_count / PAGE_SIZE) if total_count > 0 else 1
+    start_idx = (page - 1) * PAGE_SIZE
+    end_idx = start_idx + PAGE_SIZE
+    page_results = sorted_films[start_idx:end_idx]
 
     return PaginatedResponse(
         count=total_count,
         page=page,
         total_pages=total_pages,
-        next_page=page + 1 if data.get("next") else None,
-        previous_page=page - 1 if data.get("previous") else None,
-        results=sorted_films,
+        next_page=page + 1 if page < total_pages else None,
+        previous_page=page - 1 if page > 1 else None,
+        results=page_results,
     )
 
 

@@ -47,6 +47,9 @@ class CharacterSummary(BaseModel):
     name: str
     gender: str
     birth_year: str
+    eye_color: str = ""
+    hair_color: str = ""
+    skin_color: str = ""
 
 
 class PlanetBase(BaseModel):
@@ -123,6 +126,7 @@ class StarshipSummary(BaseModel):
     name: str
     model: str
     starship_class: str
+    manufacturer: str = ""
 
 
 class FilmBase(BaseModel):
@@ -160,6 +164,8 @@ class FilmSummary(BaseModel):
     title: str
     episode_id: int
     release_date: str
+    director: str = ""
+    producer: str = ""
 
 
 # --- Response wrappers ---

@@ -235,6 +235,94 @@ class SwapiClient:
         except SwapiNotFoundError:
             raise SwapiNotFoundError("film", film_id)
 
+    # --- Fetch ALL data methods (for proper filtering/pagination) ---
+
+    async def fetch_all_people(self, search: str | None = None) -> list[dict[str, Any]]:
+        """Fetch ALL people from SWAPI (all pages)."""
+        cache_key = f"all_people:{search or ''}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        # First request to get total count
+        first_page = await self.fetch_people(page=1, search=search)
+        total_count = first_page.get("count", 0)
+        all_results = list(first_page.get("results", []))
+
+        if total_count > 10:
+            # Fetch remaining pages in parallel
+            total_pages = (total_count + 9) // 10
+            tasks = [
+                self.fetch_people(page=p, search=search)
+                for p in range(2, total_pages + 1)
+            ]
+            pages = await asyncio.gather(*tasks)
+            for page_data in pages:
+                all_results.extend(page_data.get("results", []))
+
+        self._cache.set(cache_key, all_results)
+        return all_results
+
+    async def fetch_all_planets(self, search: str | None = None) -> list[dict[str, Any]]:
+        """Fetch ALL planets from SWAPI (all pages)."""
+        cache_key = f"all_planets:{search or ''}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        first_page = await self.fetch_planets(page=1, search=search)
+        total_count = first_page.get("count", 0)
+        all_results = list(first_page.get("results", []))
+
+        if total_count > 10:
+            total_pages = (total_count + 9) // 10
+            tasks = [
+                self.fetch_planets(page=p, search=search)
+                for p in range(2, total_pages + 1)
+            ]
+            pages = await asyncio.gather(*tasks)
+            for page_data in pages:
+                all_results.extend(page_data.get("results", []))
+
+        self._cache.set(cache_key, all_results)
+        return all_results
+
+    async def fetch_all_starships(self, search: str | None = None) -> list[dict[str, Any]]:
+        """Fetch ALL starships from SWAPI (all pages)."""
+        cache_key = f"all_starships:{search or ''}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        first_page = await self.fetch_starships(page=1, search=search)
+        total_count = first_page.get("count", 0)
+        all_results = list(first_page.get("results", []))
+
+        if total_count > 10:
+            total_pages = (total_count + 9) // 10
+            tasks = [
+                self.fetch_starships(page=p, search=search)
+                for p in range(2, total_pages + 1)
+            ]
+            pages = await asyncio.gather(*tasks)
+            for page_data in pages:
+                all_results.extend(page_data.get("results", []))
+
+        self._cache.set(cache_key, all_results)
+        return all_results
+
+    async def fetch_all_films(self, search: str | None = None) -> list[dict[str, Any]]:
+        """Fetch ALL films from SWAPI (only 6 films, single page)."""
+        cache_key = f"all_films:{search or ''}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = await self.fetch_films(page=1, search=search)
+        all_results = list(data.get("results", []))
+        self._cache.set(cache_key, all_results)
+        return all_results
+
     # --- Parse raw SWAPI data into our models ---
 
     def _parse_character(self, data: dict[str, Any], char_id: int) -> Character:
@@ -264,6 +352,9 @@ class SwapiClient:
             name=data["name"],
             gender=data["gender"],
             birth_year=data["birth_year"],
+            eye_color=data.get("eye_color", ""),
+            hair_color=data.get("hair_color", ""),
+            skin_color=data.get("skin_color", ""),
         )
 
     def _parse_planet(self, data: dict[str, Any], planet_id: int) -> Planet:
@@ -320,6 +411,7 @@ class SwapiClient:
             name=data["name"],
             model=data["model"],
             starship_class=data["starship_class"],
+            manufacturer=data.get("manufacturer", ""),
         )
 
     def _parse_film(self, data: dict[str, Any], film_id: int) -> Film:
@@ -344,6 +436,8 @@ class SwapiClient:
             title=data["title"],
             episode_id=data["episode_id"],
             release_date=data["release_date"],
+            director=data.get("director", ""),
+            producer=data.get("producer", ""),
         )
 
     # --- High-level methods that return parsed models ---

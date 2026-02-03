@@ -34,6 +34,21 @@ class SortOrder(str, Enum):
     desc = "desc"
 
 
+def _apply_filters(
+    planets: list[PlanetSummary],
+    filters: dict[str, str | None],
+) -> list[PlanetSummary]:
+    """Apply case-insensitive filters to planet list."""
+    result = planets
+    for field, value in filters.items():
+        if value is not None:
+            result = [
+                planet for planet in result
+                if value.lower() in getattr(planet, field, "").lower()
+            ]
+    return result
+
+
 def _sort_planets(
     planets: list[PlanetSummary],
     sort_by: PlanetSortField,
@@ -54,6 +69,9 @@ def _sort_planets(
     return sorted(planets, key=get_sort_key, reverse=reverse)
 
 
+PAGE_SIZE = 10
+
+
 @router.get("/", response_model=PaginatedResponse[PlanetSummary])
 async def list_planets(
     client: Annotated[SwapiClient, Depends(get_swapi_client)],
@@ -63,27 +81,53 @@ async def list_planets(
         PlanetSortField.name, description="Field to sort by"
     ),
     order: SortOrder = Query(SortOrder.asc, description="Sort order"),
+    climate: str | None = Query(None, description="Filter by climate (arid, temperate, etc.)"),
+    terrain: str | None = Query(None, description="Filter by terrain (desert, grasslands, etc.)"),
+    film_id: int | None = Query(None, description="Filter by film ID (planets in film)"),
 ):
-    """List all planets with pagination, search, and sorting."""
-    data = await client.fetch_planets(page=page, search=search)
+    """
+    List all planets with pagination, search, sorting, and filters.
+
+    Fetches all data from SWAPI, applies filters/sorting, then paginates.
+    """
+    # Fetch ALL planets (cached after first request)
+    all_data = await client.fetch_all_planets(search=search)
+
+    # If filtering by film, get the film's planet URLs
+    film_planet_urls: set[str] | None = None
+    if film_id:
+        film_data = await client.fetch_film(film_id)
+        film_planet_urls = set(film_data.get("planets", []))
 
     planets = []
-    for item in data.get("results", []):
+    for item in all_data:
+        # Filter by film if specified
+        if film_planet_urls is not None and item["url"] not in film_planet_urls:
+            continue
         planet_id = client._extract_id_from_url(item["url"])
         planets.append(client._parse_planet_summary(item, planet_id))
 
-    sorted_planets = _sort_planets(planets, sort_by, order)
+    # Apply filters
+    filters = {"climate": climate, "terrain": terrain}
+    filtered_planets = _apply_filters(planets, filters)
 
-    total_count = data.get("count", 0)
-    total_pages = math.ceil(total_count / 10) if total_count > 0 else 1
+    # Sort results
+    sorted_planets = _sort_planets(filtered_planets, sort_by, order)
+
+    # Paginate
+    total_count = len(sorted_planets)
+    total_pages = math.ceil(total_count / PAGE_SIZE) if total_count > 0 else 1
+    start_idx = (page - 1) * PAGE_SIZE
+    end_idx = start_idx + PAGE_SIZE
+    page_results = sorted_planets[start_idx:end_idx]
 
     return PaginatedResponse(
         count=total_count,
         page=page,
         total_pages=total_pages,
-        next_page=page + 1 if data.get("next") else None,
-        previous_page=page - 1 if data.get("previous") else None,
-        results=sorted_planets,
+        next_page=page + 1 if page < total_pages else None,
+        previous_page=page - 1 if page > 1 else None,
+        results=page_results,
     )
 
 

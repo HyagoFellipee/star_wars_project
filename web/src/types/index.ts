@@ -113,6 +113,21 @@ export interface SearchParams {
   search?: string;
   sort_by?: string;
   order?: SortOrder;
+  // Character filters
+  gender?: string;
+  eye_color?: string;
+  hair_color?: string;
+  skin_color?: string;
+  film_id?: number;
+  // Planet filters
+  climate?: string;
+  terrain?: string;
+  // Starship filters
+  starship_class?: string;
+  manufacturer?: string;
+  // Film filters
+  director?: string;
+  producer?: string;
 }
 
 // --- API Error Types ---

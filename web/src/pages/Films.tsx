@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { Loading, ErrorMessage, SearchBar, Card } from '../components';
+import { Loading, ErrorMessage, SearchBar, Card, FilterSelect } from '../components';
 import type { SearchParams } from '../types';
 
 // TMDB poster paths for Star Wars films (SWAPI id -> TMDB poster)
@@ -25,6 +25,8 @@ export default function Films() {
     search: '',
     sort_by: 'episode_id',
     order: 'asc',
+    director: '',
+    producer: '',
   });
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -34,6 +36,10 @@ export default function Films() {
 
   const handleSearch = useCallback((query: string) => {
     setParams((prev) => ({ ...prev, search: query, page: 1 }));
+  }, []);
+
+  const handleFilterChange = useCallback((field: string, value: string) => {
+    setParams((prev) => ({ ...prev, [field]: value || undefined, page: 1 }));
   }, []);
 
   if (error) {
@@ -62,6 +68,21 @@ export default function Films() {
             initialValue={params.search}
           />
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <FilterSelect
+          label="Director"
+          value={params.director || ''}
+          onChange={(v) => handleFilterChange('director', v)}
+          options={['George Lucas', 'Irvin Kershner', 'Richard Marquand']}
+        />
+        <FilterSelect
+          label="Producer"
+          value={params.producer || ''}
+          onChange={(v) => handleFilterChange('producer', v)}
+          options={['Gary Kurtz', 'Rick McCallum']}
+        />
       </div>
 
       {isLoading ? (
