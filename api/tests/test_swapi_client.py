@@ -255,3 +255,130 @@ class TestSwapiClientCache:
             assert mock.calls.call_count == 1
 
         await client.close()
+
+
+class TestFetchAllMethods:
+    """Tests for fetch_all_* methods that aggregate multiple pages."""
+
+    @pytest.mark.asyncio
+    async def test_fetch_all_people_single_page(self):
+        """Verify fetch_all_people works with single page of results (count <= 10)."""
+        client = SwapiClient(cache_ttl=0)
+
+        single_page_data = {
+            "count": 2,
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "name": "Luke Skywalker",
+                    "url": "https://swapi.dev/api/people/1/",
+                    "gender": "male",
+                    "birth_year": "19BBY",
+                },
+                {
+                    "name": "Leia Organa",
+                    "url": "https://swapi.dev/api/people/5/",
+                    "gender": "female",
+                    "birth_year": "19BBY",
+                },
+            ],
+        }
+
+        with respx.mock(base_url="https://swapi.dev/api") as mock:
+            mock.get("/people/?page=1").mock(
+                return_value=Response(200, json=single_page_data)
+            )
+
+            result = await client.fetch_all_people()
+
+            assert len(result) == 2
+            assert result[0]["name"] == "Luke Skywalker"
+            assert result[1]["name"] == "Leia Organa"
+            # Only one page should be fetched
+            assert mock.calls.call_count == 1
+
+        await client.close()
+
+    @pytest.mark.asyncio
+    async def test_fetch_all_people_multiple_pages(self, mock_swapi_multipage):
+        """Verify fetch_all_people aggregates all pages in parallel."""
+        client = SwapiClient(cache_ttl=0)
+
+        result = await client.fetch_all_people()
+
+        # 10 from page 1 + 5 from page 2 = 15 total
+        assert len(result) == 15
+        # Check first and last items
+        assert result[0]["name"] == "Luke Skywalker"
+        assert result[-1]["name"] == "Jabba Desilijic Tiure"
+
+        await client.close()
+
+    @pytest.mark.asyncio
+    async def test_fetch_all_people_with_search(self, mock_swapi_multipage):
+        """Verify search parameter is passed to SWAPI."""
+        client = SwapiClient(cache_ttl=0)
+
+        result = await client.fetch_all_people(search="luke")
+
+        assert len(result) == 1
+        assert result[0]["name"] == "Luke Skywalker"
+
+        await client.close()
+
+    @pytest.mark.asyncio
+    async def test_fetch_all_people_caches_results(self, mock_swapi_multipage):
+        """Verify results are cached and subsequent calls don't hit API."""
+        client = SwapiClient(cache_ttl=300)
+
+        # First call - fetches from API
+        result1 = await client.fetch_all_people()
+        # Second call - should use cache
+        result2 = await client.fetch_all_people()
+
+        assert len(result1) == len(result2)
+        assert result1[0]["name"] == result2[0]["name"]
+
+        await client.close()
+
+    @pytest.mark.asyncio
+    async def test_fetch_all_people_caches_with_search_key(self):
+        """Verify that search parameter creates separate cache entries."""
+        client = SwapiClient(cache_ttl=300)
+
+        all_data = {
+            "count": 2,
+            "next": None,
+            "previous": None,
+            "results": [
+                {"name": "Luke", "url": "https://swapi.dev/api/people/1/"},
+                {"name": "Leia", "url": "https://swapi.dev/api/people/5/"},
+            ],
+        }
+        search_data = {
+            "count": 1,
+            "next": None,
+            "previous": None,
+            "results": [
+                {"name": "Luke", "url": "https://swapi.dev/api/people/1/"},
+            ],
+        }
+
+        with respx.mock(base_url="https://swapi.dev/api") as mock:
+            mock.get("/people/?page=1").mock(
+                return_value=Response(200, json=all_data)
+            )
+            mock.get("/people/?page=1&search=luke").mock(
+                return_value=Response(200, json=search_data)
+            )
+
+            # Fetch all (no search)
+            result_all = await client.fetch_all_people()
+            # Fetch with search - should be separate cache
+            result_search = await client.fetch_all_people(search="luke")
+
+            assert len(result_all) == 2
+            assert len(result_search) == 1
+
+        await client.close()

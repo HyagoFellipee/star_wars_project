@@ -238,3 +238,272 @@ def tatooine_data():
 def film_data():
     """Raw A New Hope data."""
     return A_NEW_HOPE
+
+
+# --- Additional test data for multi-page and filter tests ---
+
+LEIA_ORGANA = {
+    "name": "Leia Organa",
+    "height": "150",
+    "mass": "49",
+    "hair_color": "brown",
+    "skin_color": "light",
+    "eye_color": "brown",
+    "birth_year": "19BBY",
+    "gender": "female",
+    "homeworld": "https://swapi.dev/api/planets/2/",
+    "films": [
+        "https://swapi.dev/api/films/1/",
+        "https://swapi.dev/api/films/2/",
+        "https://swapi.dev/api/films/3/",
+    ],
+    "species": [],
+    "vehicles": [],
+    "starships": [],
+    "url": "https://swapi.dev/api/people/5/",
+}
+
+DARTH_VADER = {
+    "name": "Darth Vader",
+    "height": "202",
+    "mass": "136",
+    "hair_color": "none",
+    "skin_color": "white",
+    "eye_color": "yellow",
+    "birth_year": "41.9BBY",
+    "gender": "male",
+    "homeworld": "https://swapi.dev/api/planets/1/",
+    "films": [
+        "https://swapi.dev/api/films/1/",
+        "https://swapi.dev/api/films/2/",
+        "https://swapi.dev/api/films/3/",
+    ],
+    "species": [],
+    "vehicles": [],
+    "starships": [],
+    "url": "https://swapi.dev/api/people/4/",
+}
+
+# Multi-page data for fetch_all tests
+PEOPLE_MULTIPAGE_1 = {
+    "count": 15,
+    "next": "https://swapi.dev/api/people/?page=2",
+    "previous": None,
+    "results": [
+        LUKE_SKYWALKER,
+        PEOPLE_LIST_PAGE_1["results"][1],  # C-3PO
+        DARTH_VADER,
+        LEIA_ORGANA,
+        {
+            "name": "Owen Lars",
+            "height": "178",
+            "mass": "120",
+            "hair_color": "brown",
+            "skin_color": "light",
+            "eye_color": "blue",
+            "birth_year": "52BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/1/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/6/",
+        },
+        {
+            "name": "Beru Whitesun lars",
+            "height": "165",
+            "mass": "75",
+            "hair_color": "brown",
+            "skin_color": "light",
+            "eye_color": "blue",
+            "birth_year": "47BBY",
+            "gender": "female",
+            "homeworld": "https://swapi.dev/api/planets/1/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/7/",
+        },
+        {
+            "name": "R5-D4",
+            "height": "97",
+            "mass": "32",
+            "hair_color": "n/a",
+            "skin_color": "white, red",
+            "eye_color": "red",
+            "birth_year": "unknown",
+            "gender": "n/a",
+            "homeworld": "https://swapi.dev/api/planets/1/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/8/",
+        },
+        {
+            "name": "Biggs Darklighter",
+            "height": "183",
+            "mass": "84",
+            "hair_color": "black",
+            "skin_color": "light",
+            "eye_color": "brown",
+            "birth_year": "24BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/1/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/9/",
+        },
+        {
+            "name": "Obi-Wan Kenobi",
+            "height": "182",
+            "mass": "77",
+            "hair_color": "auburn, white",
+            "skin_color": "fair",
+            "eye_color": "blue-gray",
+            "birth_year": "57BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/20/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/10/",
+        },
+        {
+            "name": "Anakin Skywalker",
+            "height": "188",
+            "mass": "84",
+            "hair_color": "blond",
+            "skin_color": "fair",
+            "eye_color": "blue",
+            "birth_year": "41.9BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/1/",
+            "films": ["https://swapi.dev/api/films/4/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/11/",
+        },
+    ],
+}
+
+PEOPLE_MULTIPAGE_2 = {
+    "count": 15,
+    "next": None,
+    "previous": "https://swapi.dev/api/people/?page=1",
+    "results": [
+        {
+            "name": "Wilhuff Tarkin",
+            "height": "180",
+            "mass": "unknown",
+            "hair_color": "auburn, grey",
+            "skin_color": "fair",
+            "eye_color": "blue",
+            "birth_year": "64BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/21/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/12/",
+        },
+        {
+            "name": "Chewbacca",
+            "height": "228",
+            "mass": "112",
+            "hair_color": "brown",
+            "skin_color": "unknown",
+            "eye_color": "blue",
+            "birth_year": "200BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/14/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/13/",
+        },
+        {
+            "name": "Han Solo",
+            "height": "180",
+            "mass": "80",
+            "hair_color": "brown",
+            "skin_color": "fair",
+            "eye_color": "brown",
+            "birth_year": "29BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/22/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/14/",
+        },
+        {
+            "name": "Greedo",
+            "height": "173",
+            "mass": "74",
+            "hair_color": "n/a",
+            "skin_color": "green",
+            "eye_color": "black",
+            "birth_year": "44BBY",
+            "gender": "male",
+            "homeworld": "https://swapi.dev/api/planets/23/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/15/",
+        },
+        {
+            "name": "Jabba Desilijic Tiure",
+            "height": "175",
+            "mass": "1,358",
+            "hair_color": "n/a",
+            "skin_color": "green-tan, brown",
+            "eye_color": "orange",
+            "birth_year": "600BBY",
+            "gender": "hermaphrodite",
+            "homeworld": "https://swapi.dev/api/planets/24/",
+            "films": ["https://swapi.dev/api/films/1/"],
+            "species": [],
+            "vehicles": [],
+            "starships": [],
+            "url": "https://swapi.dev/api/people/16/",
+        },
+    ],
+}
+
+
+@pytest.fixture
+def mock_swapi_multipage():
+    """Mock SWAPI with multiple pages for fetch_all tests."""
+    with respx.mock(base_url="https://swapi.dev/api", assert_all_called=False) as mock:
+        # People multi-page endpoints
+        mock.get("/people/?page=1").mock(
+            return_value=Response(200, json=PEOPLE_MULTIPAGE_1)
+        )
+        mock.get("/people/?page=2").mock(
+            return_value=Response(200, json=PEOPLE_MULTIPAGE_2)
+        )
+        # Search endpoint
+        mock.get("/people/?page=1&search=luke").mock(
+            return_value=Response(200, json={
+                "count": 1,
+                "next": None,
+                "previous": None,
+                "results": [LUKE_SKYWALKER],
+            })
+        )
+        # Film endpoints for film_id filter tests
+        mock.get("/films/1/").mock(return_value=Response(200, json=A_NEW_HOPE))
+        mock.get("/films/2/").mock(return_value=Response(200, json=EMPIRE_STRIKES_BACK))
+        mock.get("/films/3/").mock(return_value=Response(200, json=RETURN_OF_THE_JEDI))
+        yield mock
