@@ -4,6 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  base: './',  // Relative paths for Cloud Storage hosting
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

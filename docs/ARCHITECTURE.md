@@ -195,8 +195,59 @@ docker run -p 8000:8000 -e API_KEY=your-key swapi-api
 ```
 
 ### GCP Cloud Run
+
+Veja o guia completo em [GCP_DEPLOY_GUIDE.md](./GCP_DEPLOY_GUIDE.md).
+
+**Arquitetura GCP:**
+
+```mermaid
+graph TB
+    subgraph "Google Cloud Platform"
+        subgraph "Frontend"
+            CS[Cloud Storage] --> LB[Load Balancer + CDN]
+        end
+
+        subgraph "API Layer"
+            AG[API Gateway] --> CR[Cloud Run]
+        end
+
+        subgraph "Secrets"
+            SM[Secret Manager]
+        end
+
+        subgraph "Container Registry"
+            AR[Artifact Registry]
+        end
+
+        subgraph "CI/CD"
+            CB[Cloud Build]
+        end
+    end
+
+    U[Usuário] --> LB
+    U --> AG
+    CR --> SM
+    CR --> SWAPI[SWAPI External]
+    CB --> AR
+    AR --> CR
+    GH[GitHub] --> CB
+```
+
+**Deploy rápido:**
+
 ```bash
-# Build and push to GCR
+# 1. Configurar variáveis
+export GCP_PROJECT_ID=seu-projeto
+export API_KEY=sua-chave-secreta
+
+# 2. Executar script
+./scripts/deploy-gcp.sh deploy
+```
+
+**Comandos manuais:**
+
+```bash
+# Build e push
 gcloud builds submit --tag gcr.io/PROJECT_ID/swapi-api ./api
 
 # Deploy
@@ -204,8 +255,14 @@ gcloud run deploy swapi-api \
   --image gcr.io/PROJECT_ID/swapi-api \
   --platform managed \
   --region us-central1 \
-  --set-env-vars API_KEY=your-key
+  --set-secrets="API_KEY=api-key:latest"
 ```
+
+**Custos estimados (Free Tier):**
+- Cloud Run: 2M requests/mês grátis
+- Artifact Registry: 500MB grátis
+- Secret Manager: 10k acessos/mês grátis
+- **Total para projeto de teste: ~$0/mês**
 
 ## Future Improvements
 
