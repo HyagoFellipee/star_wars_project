@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     # API config
     api_key: str = "dev-key-change-me"
-    api_title: str = "PowerOfData SWAPI"
+    api_title: str = "Star Wars API"
     api_version: str = "1.0.0"
 
     # SWAPI config

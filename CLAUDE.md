@@ -1,27 +1,28 @@
-# PowerOfData SWAPI Challenge
+# Star Wars API Explorer
 
-API REST + Frontend para exploração do universo Star Wars, consumindo a SWAPI.
+REST API + Frontend for exploring the Star Wars universe, consuming SWAPI.
 
 ## Stack
 - **Backend**: FastAPI + Python 3.11 + httpx (async)
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind
 - **Infra**: Docker + GCP Cloud Run
-- **Testes**: pytest (backend), vitest (frontend)
+- **Tests**: pytest (backend), vitest (frontend)
 
-## Estrutura
+## Structure
 - `api/` - FastAPI backend
 - `web/` - React frontend
-- `docs/` - Arquitetura e diagramas
+- `docs/` - Deployment guides
+- `scripts/` - Automation scripts
 
-## Comandos
+## Commands
 
 ### Backend (api/)
 ```bash
 cd api
 pip install -r requirements.txt
 uvicorn src.main:app --reload --port 8005   # dev server
-pytest -v                                    # testes
-pytest --cov=src --cov-report=html           # cobertura
+pytest -v                                    # tests
+pytest --cov=src --cov-report=html           # coverage
 ```
 
 ### Frontend (web/)
@@ -29,8 +30,8 @@ pytest --cov=src --cov-report=html           # cobertura
 cd web
 npm install
 npm run dev                            # dev server :5173
-npm run build                          # build prod
-npm test                               # testes
+npm run build                          # prod build
+npm test                               # tests
 ```
 
 ### Docker
@@ -39,36 +40,35 @@ docker build -t swapi-api ./api
 docker run -p 8005:8000 -e API_KEY=your-key -e CORS_ORIGINS='["http://localhost:5173"]' swapi-api
 ```
 
-## Padrões de código
+## Code Standards
 
 ### Python
-- Type hints em todas as funções
-- Async para chamadas HTTP externas (httpx)
-- Exceptions customizadas em src/exceptions/
-- Logging ao invés de print
-- Docstrings só quando não-óbvio
+- Type hints on all functions
+- Async for external HTTP calls (httpx)
+- Custom exceptions in src/exceptions/
+- Logging instead of print
+- Docstrings only when non-obvious
 
 ### TypeScript/React
 - Functional components + hooks
-- Types em src/types/
-- Custom hooks em src/hooks/
-- Evite any, prefira unknown quando necessário
+- Types in src/types/
+- Custom hooks in src/hooks/
+- Avoid any, prefer unknown when necessary
 
-### Nomenclatura
-- Funções descritivas pro domínio: fetch_character_homeworld, não get_data
-- Arquivos snake_case (Python), kebab-case (TS)
-- Commits em inglês, imperativo: "add character filtering"
+### Naming
+- Domain-specific descriptive functions: fetch_character_homeworld, not get_data
+- Files: snake_case (Python), kebab-case (TS)
+- Commits in English, imperative: "add character filtering"
 
-## IMPORTANTE
+## IMPORTANT
 
-- NUNCA hardcode secrets - use variáveis de ambiente
-- SEMPRE rode `pytest -v` após mudanças no backend (16 testes, todos passando)
-- SEMPRE rode `npm run build` após mudanças no frontend (verifica types)
-- Erros da SWAPI devem ter tratamento específico (timeout, 404, rate limit)
-- TODOs são bem-vindos para marcar melhorias futuras
-- Os arquivos `.env` NÃO devem ser commitados (use `.env.example` como referência)
+- NEVER hardcode secrets - use environment variables
+- ALWAYS run `pytest -v` after backend changes
+- ALWAYS run `npm run build` after frontend changes (checks types)
+- SWAPI errors must have specific handling (timeout, 404, rate limit)
+- `.env` files should NOT be committed (use `.env.example` as reference)
 
-## Variáveis de ambiente
+## Environment Variables
 
 ### Backend (api/.env)
 ```
@@ -85,22 +85,20 @@ VITE_API_URL=http://localhost:8005
 VITE_API_KEY=your-secret-api-key
 ```
 
-> **Nota**: Ajuste a porta do backend e as origens CORS conforme necessário.
+> **Note**: Adjust backend port and CORS origins as needed.
 
-## Contexto
+## Features
+1. Endpoints for people, planets, starships, films
+2. Filters and sorting
+3. Correlated queries (e.g., characters from a film)
+4. API Key authentication
+5. Unit tests
+6. OpenAPI documentation (automatic via FastAPI)
 
-Case técnico para PowerOfData. Requisitos principais:
-1. Endpoints para people, planets, starships, films
-2. Filtros e ordenação
-3. Consultas correlacionadas (ex: personagens de um filme)
-4. Autenticação via API Key
-5. Testes unitários (min 70% cobertura em services)
-6. Documentação OpenAPI (automática via FastAPI)
-
-## Arquivos-chave
-- `api/src/main.py` - Entrypoint FastAPI
-- `api/src/services/swapi_client.py` - Cliente async SWAPI (cache, retry, rate limit)
-- `api/src/config.py` - Settings com Pydantic
-- `api/tests/conftest.py` - Fixtures e mocks para testes (respx)
-- `web/src/services/api.ts` - Cliente da nossa API
-- `docs/ARCHITECTURE.md` - Diagrama e decisões
+## Key Files
+- `api/src/main.py` - FastAPI entrypoint
+- `api/src/services/swapi_client.py` - Async SWAPI client (cache, retry, rate limit)
+- `api/src/config.py` - Pydantic settings
+- `api/tests/conftest.py` - Test fixtures and mocks (respx)
+- `web/src/services/api.ts` - Our API client
+- `docs/GCP_DEPLOY_GUIDE.md` - GCP deployment guide

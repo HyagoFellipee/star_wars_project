@@ -65,7 +65,7 @@ export default function Layout({ children }: LayoutProps) {
       <footer className="bg-sw-dark border-t border-sw-gray py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 text-sm">
-            Case Técnico - PowerOfData | Data from{' '}
+            Data from{' '}
             <a
               href="https://swapi.dev"
               target="_blank"

@@ -34,7 +34,7 @@ async def verify_api_key(
     Validate API key from X-API-Key header.
 
     For now it's just a simple string comparison against env var.
-    Good enough for a technical challenge, but in production we'd
+    Simple string comparison for now. In production we'd
     want proper key management (rotation, scoping, rate limits per key, etc).
     """
     if x_api_key is None:

@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Script de Deploy para Google Cloud Platform
-# Star Wars API - PowerOfData Case Técnico
+# Star Wars API
 # =============================================================================
 
 set -e  # Exit on any error

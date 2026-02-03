@@ -1,22 +1,20 @@
-# PowerOfData SWAPI Challenge
+# Star Wars API Explorer
 
-API REST + Frontend para exploração do universo Star Wars.
+REST API + Frontend for exploring the Star Wars universe.
 
-Case técnico para processo seletivo na PowerOfData.
+## What is this?
 
-## O que é isso?
-
-Uma API que consome a [SWAPI](https://swapi.dev) (Star Wars API) e expõe endpoints mais amigáveis, com:
-- Paginação, busca e ordenação
-- Consultas correlacionadas (personagens de um filme, residentes de um planeta, etc)
-- Autenticação via API Key
-- Frontend React com tema Star Wars
+An API that consumes [SWAPI](https://swapi.dev) (Star Wars API) and exposes friendlier endpoints with:
+- Pagination, search, and sorting
+- Correlated queries (characters from a film, planet residents, etc.)
+- API Key authentication
+- React frontend with Star Wars theme
 
 ## Stack
 
 **Backend**
 - Python 3.11 + FastAPI
-- httpx (cliente HTTP async)
+- httpx (async HTTP client)
 - Pydantic v2
 
 **Frontend**
@@ -25,7 +23,7 @@ Uma API que consome a [SWAPI](https://swapi.dev) (Star Wars API) e expõe endpoi
 - Tailwind CSS
 - React Query
 
-**Infra**
+**Infrastructure**
 - Docker
 - GCP Cloud Run
 
@@ -36,83 +34,84 @@ Uma API que consome a [SWAPI](https://swapi.dev) (Star Wars API) e expõe endpoi
 ```bash
 cd api
 
-# Criar virtualenv (recomendado)
+# Create virtualenv (recommended)
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# ou: venv\Scripts\activate  # Windows
+# or: venv\Scripts\activate  # Windows
 
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Copiar .env de exemplo
+# Copy example .env
 cp .env.example .env
 
-# Rodar servidor de dev
+# Run dev server
 uvicorn src.main:app --reload
 ```
 
-API disponível em http://localhost:8000
+API available at http://localhost:8000
 
-Docs em http://localhost:8000/docs
+Docs at http://localhost:8000/docs
 
 ### Frontend
 
 ```bash
 cd web
 
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Copiar .env de exemplo
+# Copy example .env
 cp .env.example .env
 
-# Rodar dev server
+# Run dev server
 npm run dev
 ```
 
-Frontend disponível em http://localhost:5173
+Frontend available at http://localhost:5173
 
-## Estrutura
+## Project Structure
 
 ```
-├── api/                    # Backend FastAPI
+├── api/                    # FastAPI Backend
 │   ├── src/
 │   │   ├── main.py         # Entrypoint
-│   │   ├── config.py       # Configurações
-│   │   ├── dependencies.py # DI e auth
-│   │   ├── routers/        # Endpoints por recurso
+│   │   ├── config.py       # Configuration
+│   │   ├── dependencies.py # DI and auth
+│   │   ├── routers/        # Endpoints by resource
 │   │   ├── services/       # SWAPI client
 │   │   ├── schemas/        # Pydantic models
-│   │   └── exceptions/     # Erros customizados
-│   └── tests/              # Testes pytest
-├── web/                    # Frontend React
+│   │   └── exceptions/     # Custom errors
+│   └── tests/              # pytest tests
+├── web/                    # React Frontend
 │   └── src/
-│       ├── components/     # Componentes React
-│       ├── pages/          # Páginas da aplicação
+│       ├── components/     # React components
+│       ├── pages/          # Application pages
 │       ├── hooks/          # Custom hooks
 │       ├── services/       # API client
 │       └── types/          # TypeScript types
+├── scripts/                # Deployment scripts
 └── docs/
-    └── ARCHITECTURE.md     # Arquitetura e decisões
+    └── GCP_DEPLOY_GUIDE.md # GCP deployment guide
 ```
 
 ## Endpoints
 
-| Recurso | Endpoints |
-|---------|-----------|
+| Resource | Endpoints |
+|----------|-----------|
 | Characters | `GET /characters`, `GET /characters/{id}`, `GET /characters/{id}/films` |
 | Planets | `GET /planets`, `GET /planets/{id}`, `GET /planets/{id}/residents` |
 | Starships | `GET /starships`, `GET /starships/{id}`, `GET /starships/{id}/pilots` |
-| Films | `GET /films`, `GET /films/{id}`, `GET /films/{id}/characters`, etc |
+| Films | `GET /films`, `GET /films/{id}`, `GET /films/{id}/characters`, etc. |
 
-Todos os endpoints (exceto `/health`) requerem header `X-API-Key`.
+All endpoints (except `/health`) require `X-API-Key` header.
 
-## Testes
+## Tests
 
 ```bash
 cd api
-pytest                                  # Rodar testes
-pytest --cov=src --cov-report=html     # Com cobertura
+pytest                                  # Run tests
+pytest --cov=src --cov-report=html     # With coverage
 ```
 
 ## Docker
@@ -122,47 +121,49 @@ pytest --cov=src --cov-report=html     # Com cobertura
 docker build -t swapi-api ./api
 
 # Run
-docker run -p 8000:8000 -e API_KEY=sua-chave swapi-api
+docker run -p 8000:8000 \
+  -e API_KEY=your-secret-key \
+  -e CORS_ORIGINS='["http://localhost:5173"]' \
+  swapi-api
 ```
 
-## Decisões técnicas interessantes
+## GCP Deployment
 
-### Por que httpx e não requests?
-O `requests` é síncrono. Quando fazemos várias chamadas à SWAPI (tipo pegar todos os personagens de um filme), seria lento demais. O `httpx` é async nativo e tem uma API bem parecida com o requests.
+See [docs/GCP_DEPLOY_GUIDE.md](docs/GCP_DEPLOY_GUIDE.md) for complete deployment instructions.
 
-### Cache em memória
-Implementei um cache simples com TTL usando um dict. Pra um case técnico funciona bem, mas em produção com múltiplas instâncias precisaria de Redis.
+Quick deploy using the automation script:
 
-### Por que não usei uma lib de cache?
-Quis mostrar que sei implementar a lógica, não só instalar pacotes. O cache é ~30 linhas de código e faz exatamente o que preciso.
+```bash
+export GCP_PROJECT_ID=your-project
+export API_KEY=your-secret-key
 
-### Rate limiting próprio
-A SWAPI tem limite de 10k requisições/dia. Implementei um rate limiter usando token bucket pra não estourar o limite. É conservador (5 req/s) mas garante que não vai dar problema.
+# Deploy backend only
+./scripts/deploy-gcp.sh deploy
 
-## Variáveis de ambiente
+# Deploy frontend only
+./scripts/deploy-gcp.sh frontend
+
+# Deploy both
+./scripts/deploy-gcp.sh all
+```
+
+## Environment Variables
 
 ### Backend (.env)
 ```
-API_KEY=sua-chave-secreta
+API_KEY=your-secret-key
 SWAPI_BASE_URL=https://swapi.dev/api
 LOG_LEVEL=INFO
 CACHE_TTL_SECONDS=300
+CORS_ORIGINS=["http://localhost:5173"]
 ```
 
 ### Frontend (.env)
 ```
 VITE_API_URL=http://localhost:8000
-VITE_API_KEY=sua-chave-secreta
+VITE_API_KEY=your-secret-key
 ```
 
-## TODOs
+## License
 
-- [ ] Cache Redis para produção
-- [ ] Testes de integração
-- [ ] CI/CD com GitHub Actions
-- [ ] Métricas e logging estruturado
-- [ ] Rate limiting por API key
-
----
-
-Feito para o case técnico da PowerOfData.
+MIT

@@ -56,10 +56,10 @@ gcloud auth application-default login
 gcloud projects list
 
 # Criar novo projeto (escolha um ID único)
-gcloud projects create swapi-powerofdata-2024 --name="Star Wars API"
+gcloud projects create swapi-project --name="Star Wars API"
 
 # Selecionar o projeto
-gcloud config set project swapi-powerofdata-2024
+gcloud config set project swapi-project
 
 # Verificar projeto atual
 gcloud config get-value project
@@ -72,7 +72,7 @@ gcloud config get-value project
 gcloud billing accounts list
 
 # Vincular billing ao projeto (substitua BILLING_ACCOUNT_ID)
-gcloud billing projects link swapi-powerofdata-2024 \
+gcloud billing projects link swapi-project \
   --billing-account=BILLING_ACCOUNT_ID
 ```
 
@@ -206,7 +206,7 @@ Criar arquivo `api-gateway-config.yaml`:
 swagger: '2.0'
 info:
   title: Star Wars API Gateway
-  description: API Gateway para SWAPI PowerOfData
+  description: API Gateway for Star Wars API
   version: '1.0.0'
 schemes:
   - https
@@ -348,7 +348,7 @@ npm run build
 
 ```bash
 # Criar bucket (nome deve ser único globalmente)
-BUCKET_NAME=swapi-frontend-powerofdata
+BUCKET_NAME=swapi-frontend
 gsutil mb -l ${REGION} gs://${BUCKET_NAME}
 
 # Configurar como website

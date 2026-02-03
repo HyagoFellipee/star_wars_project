@@ -76,8 +76,7 @@ export default function Home() {
       <div className="bg-sw-dark border border-sw-gray rounded-xl p-6 sm:p-8">
         <h2 className="text-xl font-bold text-white mb-4">About this project</h2>
         <p className="text-gray-400 mb-4">
-          This API explorer is built as a technical challenge for PowerOfData.
-          It consumes the{' '}
+          This API explorer consumes the{' '}
           <a
             href="https://swapi.dev"
             target="_blank"

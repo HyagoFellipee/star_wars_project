@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle - startup and shutdown."""
-    logger.info("Starting up PowerOfData SWAPI API...")
+    logger.info("Starting up Star Wars API...")
     yield
     # Cleanup on shutdown
     logger.info("Shutting down...")
@@ -130,4 +130,4 @@ async def health_check():
 @app.get("/", include_in_schema=False)
 async def root():
     """Redirect root to docs."""
-    return {"message": "Welcome to PowerOfData SWAPI API", "docs": "/docs"}
+    return {"message": "Welcome to Star Wars API", "docs": "/docs"}
