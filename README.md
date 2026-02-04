@@ -117,15 +117,15 @@ pytest --cov=src --cov-report=html     # With coverage
 ## Docker
 
 ```bash
-# Build
-docker build -t swapi-api ./api
+# Start both backend and frontend
+docker compose up --build
 
-# Run
-docker run -p 8000:8000 \
-  -e API_KEY=your-secret-key \
-  -e CORS_ORIGINS='["http://localhost:5173"]' \
-  swapi-api
+# Or in background
+docker compose up -d --build
 ```
+
+- Backend: http://localhost:8000
+- Frontend: http://localhost:3000
 
 ## GCP Deployment
 
