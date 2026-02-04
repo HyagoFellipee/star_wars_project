@@ -137,6 +137,17 @@ setup_secrets() {
         echo -n "$API_KEY" | gcloud secrets versions add api-key --data-file=-
         log_success "Secret atualizado"
     fi
+
+    # Grant Cloud Run service account access to the secret
+    PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+    SERVICE_ACCOUNT="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+
+    log_info "Concedendo permissão ao service account..."
+    gcloud secrets add-iam-policy-binding api-key \
+        --member="serviceAccount:${SERVICE_ACCOUNT}" \
+        --role="roles/secretmanager.secretAccessor" \
+        --quiet
+    log_success "Permissão concedida"
 }
 
 # -----------------------------------------------------------------------------

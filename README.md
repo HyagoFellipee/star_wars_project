@@ -2,6 +2,12 @@
 
 REST API + Frontend for exploring the Star Wars universe.
 
+## Live Demo
+
+- **Frontend**: https://storage.googleapis.com/swapi-frontend-swapi-explorer-2024/index.html
+- **API**: https://swapi-api-984554052871.us-central1.run.app
+- **API Docs**: https://swapi-api-984554052871.us-central1.run.app/docs
+
 ## What is this?
 
 An API that consumes [SWAPI](https://swapi.dev) (Star Wars API) and exposes friendlier endpoints with:
@@ -27,48 +33,49 @@ An API that consumes [SWAPI](https://swapi.dev) (Star Wars API) and exposes frie
 - Docker
 - GCP Cloud Run
 
-## Quick Start
+## Running the Project
 
-### Backend
+### Option 1: Local Development
 
+**Backend**
 ```bash
 cd api
-
-# Create virtualenv (recommended)
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# or: venv\Scripts\activate  # Windows
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Copy example .env
 cp .env.example .env
-
-# Run dev server
 uvicorn src.main:app --reload
 ```
+- API: http://localhost:8000
+- Docs: http://localhost:8000/docs
 
-API available at http://localhost:8000
-
-Docs at http://localhost:8000/docs
-
-### Frontend
-
+**Frontend**
 ```bash
 cd web
-
-# Install dependencies
 npm install
-
-# Copy example .env
 cp .env.example .env
-
-# Run dev server
 npm run dev
 ```
+- Frontend: http://localhost:5173
 
-Frontend available at http://localhost:5173
+### Option 2: Docker
+
+```bash
+docker compose up --build
+```
+- Backend: http://localhost:8000
+- Frontend: http://localhost:3000
+
+### Option 3: GCP Deployment
+
+```bash
+export GCP_PROJECT_ID=your-project
+export API_KEY=your-secret-api-key-here
+
+./scripts/deploy-gcp.sh all
+```
+
+See [docs/GCP_DEPLOY_GUIDE.md](docs/GCP_DEPLOY_GUIDE.md) for detailed instructions.
 
 ## Project Structure
 
@@ -114,44 +121,11 @@ pytest                                  # Run tests
 pytest --cov=src --cov-report=html     # With coverage
 ```
 
-## Docker
-
-```bash
-# Start both backend and frontend
-docker compose up --build
-
-# Or in background
-docker compose up -d --build
-```
-
-- Backend: http://localhost:8000
-- Frontend: http://localhost:3000
-
-## GCP Deployment
-
-See [docs/GCP_DEPLOY_GUIDE.md](docs/GCP_DEPLOY_GUIDE.md) for complete deployment instructions.
-
-Quick deploy using the automation script:
-
-```bash
-export GCP_PROJECT_ID=your-project
-export API_KEY=your-secret-key
-
-# Deploy backend only
-./scripts/deploy-gcp.sh deploy
-
-# Deploy frontend only
-./scripts/deploy-gcp.sh frontend
-
-# Deploy both
-./scripts/deploy-gcp.sh all
-```
-
 ## Environment Variables
 
 ### Backend (.env)
 ```
-API_KEY=your-secret-key
+API_KEY=your-secret-api-key-here
 SWAPI_BASE_URL=https://swapi.dev/api
 LOG_LEVEL=INFO
 CACHE_TTL_SECONDS=300
@@ -161,7 +135,7 @@ CORS_ORIGINS=["http://localhost:5173"]
 ### Frontend (.env)
 ```
 VITE_API_URL=http://localhost:8000
-VITE_API_KEY=your-secret-key
+VITE_API_KEY=your-secret-api-key-here
 ```
 
 ## License
